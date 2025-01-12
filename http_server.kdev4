@@ -1,0 +1,3 @@
+[Project]
+Name=http_server
+Manager=KDevCMakeManager
