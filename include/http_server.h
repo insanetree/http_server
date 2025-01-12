@@ -11,10 +11,10 @@ namespace insanetree
 class http_server
 {
 public:
-    explicit http_server(uint16_t port, int32_t backlog);
+    explicit http_server(in_port_t port, int backlog);
 private:
-    int m_fd;
-    sockaddr_in m_sock;
+    int m_fd{};
+    sockaddr_in m_sock{};
 };
 }
 
