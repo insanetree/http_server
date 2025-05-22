@@ -32,7 +32,7 @@ http_server::accept()
 {
     int ret;
     sockaddr_in peer_addr{};
-    socklen_t addr_len{};
+    socklen_t addr_len = sizeof(peer_addr);
     ret = ::accept(m_fd, (sockaddr*)&peer_addr, &addr_len);
     if(ret == -1) {
         throw std::system_error(std::make_error_code(std::errc(errno)));
