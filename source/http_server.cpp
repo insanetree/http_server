@@ -27,15 +27,15 @@ http_server::http_server(in_port_t port, int backlog)
     }
 }
 
-http_connection
-http_server::accept()
-{
-    int ret;
-    sockaddr_in peer_addr{};
-    socklen_t addr_len = sizeof(peer_addr);
-    ret = ::accept(m_fd, (sockaddr*)&peer_addr, &addr_len);
-    if(ret == -1) {
-        throw std::system_error(std::make_error_code(std::errc(errno)));
-    }
-    return http_connection(ret, peer_addr);
-}
+// http_connection
+// http_server::accept()
+// {
+//     int ret;
+//     sockaddr_in peer_addr{};
+//     socklen_t addr_len = sizeof(peer_addr);
+//     ret = ::accept(m_fd, (sockaddr*)&peer_addr, &addr_len);
+//     if(ret == -1) {
+//         throw std::system_error(std::make_error_code(std::errc(errno)));
+//     }
+//     return http_connection(ret, peer_addr);
+// }
