@@ -1,7 +1,5 @@
-#include <iostream>
-
-#include "http_connection.h"
-#include "http_server.h"
+#include "http_connection.hpp"
+#include "http_server.hpp"
 
 using namespace insanetree;
 

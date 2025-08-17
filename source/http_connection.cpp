@@ -1,12 +1,11 @@
-#include "http_connection.h"
+#include "http_connection.hpp"
 
 #include <cerrno>
-#include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <system_error>
 
-#include "http_request.h"
+#include "http_request.hpp"
 
 using namespace insanetree;
 
