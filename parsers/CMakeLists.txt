@@ -1,20 +1,18 @@
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/http)
-
 bison_target(
     HttpParser
-    ${CMAKE_CURRENT_SOURCE_DIR}/http/parser.y
-    ${CMAKE_CURRENT_BINARY_DIR}/http/parser.cpp
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/http/parser.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/http_parser.y
+    ${CMAKE_CURRENT_BINARY_DIR}/http_parser.cpp
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/http_parser.hpp
 )
 
 flex_target(
     HttpLexer
-    ${CMAKE_CURRENT_SOURCE_DIR}/http/lexer.l
-    ${CMAKE_CURRENT_BINARY_DIR}/http/lexer.cpp
-    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/http/lexer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/http_lexer.l
+    ${CMAKE_CURRENT_BINARY_DIR}/http_lexer.cpp
+    DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/http_lexer.hpp
 )
 
 add_flex_bison_dependency(HttpLexer HttpParser)
