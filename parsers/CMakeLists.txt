@@ -17,7 +17,7 @@ flex_target(
 
 add_flex_bison_dependency(HttpLexer HttpParser)
 
-add_library(parsers OBJECT
+add_library(parsers STATIC
     ${BISON_HttpParser_OUTPUTS}
     ${FLEX_HttpLexer_OUTPUTS}
 )

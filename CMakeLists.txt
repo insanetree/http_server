@@ -12,4 +12,6 @@ file(GLOB_RECURSE CXX_SRC "${SOURCE_DIR}/*.cpp")
 add_subdirectory(parsers)
 
 add_executable(http_server ${CXX_SRC})
-target_include_directories(http_server PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+target_link_libraries(http_server PUBLIC parsers)
+target_include_directories(http_server PUBLIC ${CMAKE_SOURCE_DIR}/include)

@@ -7,6 +7,8 @@
 #include <array>
 
 #include "http_request.hpp"
+#include "http_parser.hpp"
+#include "http_lexer.hpp"
 
 namespace insanetree
 {
@@ -30,6 +32,9 @@ private:
     std::array<char, message_buffer_capacity> m_message_buffer;
     size_t m_message_buffer_index = 0;
     size_t m_message_buffer_size = 0;
+
+    yyscan_t scanner_state;
+    yypstate* parser_state;
 };
 }
 
