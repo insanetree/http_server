@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <system_error>
 
-using namespace insanetree;
+namespace insanetree {
 
 http_server::http_server(in_port_t port, int backlog)
 {
@@ -27,6 +27,11 @@ http_server::http_server(in_port_t port, int backlog)
     }
 }
 
+void
+http_server::start() {
+
+}
+
 // http_connection
 // http_server::accept()
 // {
@@ -39,3 +44,4 @@ http_server::http_server(in_port_t port, int backlog)
 //     }
 //     return http_connection(ret, peer_addr);
 // }
+} // namespace insanetree

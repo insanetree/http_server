@@ -19,6 +19,8 @@ class http_server
 {
 public:
     explicit http_server(in_port_t port, int backlog);
+
+    void start();
 private:
     int m_fd{};
     sockaddr_in m_sock{};
