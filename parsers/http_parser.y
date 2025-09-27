@@ -57,7 +57,7 @@ origin-form: SLASH segment-list
            | SLASH
            ;
 segment-list: segment
-            | SLASH segment
+            | SLASH segment-list
             ;
 segment: STRING {request->add_path_segment(std::string($1)); delete $1;}
        ;
