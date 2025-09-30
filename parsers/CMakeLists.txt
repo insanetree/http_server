@@ -17,12 +17,18 @@ flex_target(
 
 add_flex_bison_dependency(HttpLexer HttpParser)
 
-add_library(parsers OBJECT
+set(
+    PARSERS_SRC
     ${BISON_HttpParser_OUTPUTS}
     ${FLEX_HttpLexer_OUTPUTS}
+    PARENT_SCOPE
 )
 
-target_include_directories(parsers PUBLIC
+set(
+    PARSERS_INCLUDE_DIRS
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/include
+    PARENT_SCOPE
 )
+
+add_custom_target(HttpParserGen DEPENDS ${BISON_HttpParser_OUTPUTS})
+add_custom_target(HttpLexerGen DEPENDS ${FLEX_HttpLexer_OUTPUTS})
