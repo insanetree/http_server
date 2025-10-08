@@ -7,20 +7,22 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
-#include "http_lexer.hpp"
 #include "http_parser.hpp"
+
+#include "http_lexer.hpp"
+
 #include "http_request.hpp"
 
 namespace insanetree {
 class http_server;
 class http_connection
 {
-  public:
+public:
     enum class connection_state_e
     {
         UNINITIALIZED,
         READY_TO_READ,
-        RECEIVING_REQUEST,
+        READY_TO_PARSE,
         REQUEST_READY,
         AWAITING_RESPONSE
     };
@@ -35,7 +37,7 @@ class http_connection
     void read_socket();
     int parse_buffer();
 
-  private:
+private:
     friend class http_server;
 
     int m_fd;
@@ -43,6 +45,7 @@ class http_connection
     std::array<char, message_buffer_capacity + 2> m_message_buffer;
     size_t m_message_buffer_size = 0;
     yyscan_t m_scanner_state = nullptr;
+    YY_BUFFER_STATE m_buffer_state = nullptr;
     yypstate* m_parser_state = nullptr;
     std::unique_ptr<http_request> m_http_request = nullptr;
     connection_state_e m_current_state;

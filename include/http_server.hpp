@@ -16,12 +16,12 @@ class http_connection;
 
 class http_server
 {
-  public:
+public:
     explicit http_server(in_port_t port, int backlog);
 
     void start();
 
-  private:
+private:
     int m_fd{};
     sockaddr_in m_sock{};
 

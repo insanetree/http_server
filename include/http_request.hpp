@@ -6,7 +6,7 @@
 
 class http_request
 {
-  public:
+public:
     enum class method_e
     {
         GET,
@@ -25,7 +25,7 @@ class http_request
 
     void add_path_segment(std::string&& segment);
 
-  private:
+private:
     method_e m_method;
     std::list<std::string> m_path;
 };

@@ -1,5 +1,4 @@
 #include "http_connection.hpp"
-#include "http_parser.hpp"
 
 #include <cassert>
 #include <cerrno>
@@ -29,6 +28,15 @@ http_connection::initialize()
 {
     assert(m_current_state == connection_state_e::UNINITIALIZED);
     int ret;
+    if (m_scanner_state) {
+        yylex_destroy(m_scanner_state);
+        m_scanner_state = nullptr;
+        m_buffer_state = nullptr;
+    }
+    if (m_parser_state) {
+        free(m_parser_state);
+        m_parser_state = nullptr;
+    }
     ret = yylex_init(&m_scanner_state);
     if (ret) {
         throw std::system_error(std::make_error_code(std::errc(errno)));
@@ -51,28 +59,30 @@ http_connection::read_socket()
     if (ret == -1) {
         throw std::system_error(std::make_error_code(std::errc(errno)));
     }
+    assert(ret > 1);
     m_message_buffer_size = ret;
+    m_message_buffer[m_message_buffer_size] = '\0';
+    m_message_buffer[m_message_buffer_size + 1] = '\0';
+    m_buffer_state = yy_scan_buffer(
+      m_message_buffer.data(), m_message_buffer_size + 2, m_scanner_state);
+    assert(m_buffer_state);
+    m_current_state = connection_state_e::READY_TO_PARSE;
 }
 
 int
 http_connection::parse_buffer()
 {
-    assert(m_current_state == connection_state_e::READY ||
-           m_current_state == connection_state_e::RECEIVING_REQUEST);
-
+    assert(m_current_state == connection_state_e::READY_TO_PARSE);
     int ret;
-    assert(m_message_buffer_size > 1);
-    m_message_buffer[m_message_buffer_size++] = '\0';
-    m_message_buffer[m_message_buffer_size++] = '\0';
-    yy_scan_buffer(
-      m_message_buffer.data(), m_message_buffer_size, m_scanner_state);
 
     YYSTYPE yylval;
 
     do {
         ret = yylex(&yylval, m_scanner_state);
+        ret = yypush_parse(m_parser_state, ret, &yylval, m_http_request.get());
+    } while (ret != 0);
 
-    } while (true);
+    m_current_state = connection_state_e::REQUEST_READY;
 
     return 0;
 }

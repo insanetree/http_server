@@ -1,7 +1,10 @@
+#include <cerrno>
+#include <cstring>
 #include <gtest/gtest.h>
 #include <memory>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <system_error>
 #include <unistd.h>
 
 #include "http_connection.hpp"
@@ -11,7 +14,7 @@ namespace it = insanetree;
 
 class test_request_parsing : public testing::Test
 {
-  public:
+public:
     void SetUp() override
     {
         int ret;
@@ -23,7 +26,7 @@ class test_request_parsing : public testing::Test
         m_fd_out = fd_pair[1];
         m_http_connection =
           std::make_unique<it::http_connection>(m_fd_out, dummy);
-        ASSERT_EQ(it::http_connection::connection_state_e::READY,
+        ASSERT_EQ(it::http_connection::connection_state_e::UNINITIALIZED,
                   m_http_connection->get_state());
     }
 
@@ -41,4 +44,20 @@ class test_request_parsing : public testing::Test
     std::unique_ptr<it::http_connection> m_http_connection;
 };
 
-TEST_F(test_request_parsing, test_basic_get) {}
+TEST_F(test_request_parsing, test_basic_get)
+{
+    int ret;
+    m_http_connection->initialize();
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
+              m_http_connection->get_state());
+    try {
+        m_http_connection->read_socket();
+        FAIL() << "Expected EAGAIN system error";
+    } catch (std::system_error& e) {
+        ASSERT_EQ(e.code(), std::errc::resource_unavailable_try_again);
+    }
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
+              m_http_connection->get_state());
+    ret = send(m_fd_in, basic_get_message, strlen(basic_get_message), 0);
+    ASSERT_EQ(strlen(basic_get_message), ret);
+}
