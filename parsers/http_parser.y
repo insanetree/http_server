@@ -38,7 +38,8 @@
 
 %%
 
-request: method SPACE request-target SPACE HTTPversion CRLF CRLF;
+request: method SPACE request-target SPACE HTTPversion CRLF
+       ;
 
 method: GET {request->set_method(http_request::method_e::GET);}
       | HEAD {request->set_method(http_request::method_e::HEAD);}

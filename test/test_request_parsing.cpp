@@ -1,0 +1,44 @@
+#include <gtest/gtest.h>
+#include <memory>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include "http_connection.hpp"
+#include "http_request_strings.hpp"
+
+namespace it = insanetree;
+
+class test_request_parsing : public testing::Test
+{
+  public:
+    void SetUp() override
+    {
+        int ret;
+        int fd_pair[2];
+        ret = socketpair(AF_UNIX, SOCK_STREAM, 0, fd_pair);
+        ASSERT_EQ(0, ret);
+        sockaddr_in dummy{ .sin_family = AF_UNIX };
+        m_fd_in = fd_pair[0];
+        m_fd_out = fd_pair[1];
+        m_http_connection =
+          std::make_unique<it::http_connection>(m_fd_out, dummy);
+        ASSERT_EQ(it::http_connection::connection_state_e::READY,
+                  m_http_connection->get_state());
+    }
+
+    void TearDown() override
+    {
+        int ret;
+        ret = close(m_fd_in);
+        ASSERT_EQ(0, ret);
+        ret = close(m_fd_out);
+        ASSERT_EQ(0, ret);
+    }
+
+    int m_fd_in;
+    int m_fd_out;
+    std::unique_ptr<it::http_connection> m_http_connection;
+};
+
+TEST_F(test_request_parsing, test_basic_get) {}

@@ -1,27 +1,27 @@
 #ifndef _HTTP_SERVER_H_
 #define _HTTP_SERVER_H_
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
-#include <array>
-#include <memory>
 #include <map>
+#include <memory>
 
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
-namespace insanetree
-{
+namespace insanetree {
 
 class http_connection;
 
 class http_server
 {
-public:
+  public:
     explicit http_server(in_port_t port, int backlog);
 
     void start();
-private:
+
+  private:
     int m_fd{};
     sockaddr_in m_sock{};
 
