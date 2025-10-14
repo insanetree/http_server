@@ -35,7 +35,8 @@ public:
 
     void initialize();
     void read_socket();
-    int parse_buffer();
+    void parse_buffer();
+    std::unique_ptr<http_request> get_request();
 
 private:
     friend class http_server;

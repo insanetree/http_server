@@ -38,7 +38,7 @@
 
 %%
 
-request: method SPACE request-target SPACE HTTPversion CRLF
+request: method SPACE request-target SPACE HTTPversion CRLF field-list CRLF {YYACCEPT;}
        ;
 
 method: GET {request->set_method(http_request::method_e::GET);}
@@ -62,4 +62,9 @@ segment-list: segment
             ;
 segment: STRING {request->add_path_segment(std::string($1)); delete $1;}
        ;
+
+field-list:
+          | field CRLF field-list
+
+field: STRING {delete $1;}
 %%

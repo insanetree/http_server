@@ -22,7 +22,7 @@ public:
 
     method_e get_method() const;
     void set_method(method_e method);
-
+    const std::list<std::string>& get_path() const;
     void add_path_segment(std::string&& segment);
 
 private:

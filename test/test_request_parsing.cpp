@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "http_connection.hpp"
+#include "http_request.hpp"
 #include "http_request_strings.hpp"
 
 namespace it = insanetree;
@@ -60,4 +61,17 @@ TEST_F(test_request_parsing, test_basic_get)
               m_http_connection->get_state());
     ret = send(m_fd_in, basic_get_message, strlen(basic_get_message), 0);
     ASSERT_EQ(strlen(basic_get_message), ret);
+    m_http_connection->read_socket();
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE, m_http_connection->get_state());
+    m_http_connection->parse_buffer();
+    ASSERT_EQ(it::http_connection::connection_state_e::REQUEST_READY,
+              m_http_connection->get_state());
+
+    std::unique_ptr<http_request> request = m_http_connection->get_request();
+    ASSERT_TRUE(request);
+    ASSERT_EQ(http_request::method_e::GET, request->get_method());
+    ASSERT_EQ(it::http_connection::connection_state_e::AWAITING_RESPONSE, m_http_connection->get_state());
+
+    const std::list<std::string>& path = request->get_path();
+    ASSERT_EQ(0ul, path.size());
 }

@@ -12,6 +12,12 @@ http_request::get_method() const
     return m_method;
 }
 
+const std::list<std::string>&
+http_request::get_path() const
+{
+    return m_path;
+}
+
 void
 http_request::add_path_segment(std::string&& segment)
 {

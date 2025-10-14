@@ -34,6 +34,6 @@ PCHAR [A-Za-z0-9]
 <startLine>{PCHAR}+ { return TOK_STRING; }
 <startLine>"HTTP/1.1" { return TOK_HTTPversion; }
 
-{CRLF} { return TOK_CRLF; }
+<*>{CRLF} { return TOK_CRLF; }
 
 %%

@@ -1,7 +1,9 @@
 #include "http_connection.hpp"
+#include "http_request.hpp"
 
 #include <cassert>
 #include <cerrno>
+#include <memory>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <system_error>
@@ -69,11 +71,15 @@ http_connection::read_socket()
     m_current_state = connection_state_e::READY_TO_PARSE;
 }
 
-int
+void
 http_connection::parse_buffer()
 {
     assert(m_current_state == connection_state_e::READY_TO_PARSE);
     int ret;
+
+    if(!m_http_request) {
+        m_http_request = std::make_unique<http_request>();
+    }
 
     YYSTYPE yylval;
 
@@ -83,8 +89,13 @@ http_connection::parse_buffer()
     } while (ret != 0);
 
     m_current_state = connection_state_e::REQUEST_READY;
+}
 
-    return 0;
+std::unique_ptr<http_request>
+http_connection::get_request() {
+    assert(m_current_state == connection_state_e::REQUEST_READY);
+    m_current_state = connection_state_e::AWAITING_RESPONSE;
+    return std::move(m_http_request);
 }
 
 } // namespace insanetree
