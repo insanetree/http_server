@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstddef>
+#include <expected>
 #include <memory>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -24,7 +25,8 @@ public:
         READY_TO_READ,
         READY_TO_PARSE,
         REQUEST_READY,
-        AWAITING_RESPONSE
+        AWAITING_RESPONSE,
+        ERROR
     };
     static constexpr size_t message_buffer_capacity = YY_BUF_SIZE;
 
@@ -34,22 +36,31 @@ public:
     connection_state_e get_state() const;
 
     void initialize();
-    void read_socket();
+    std::expected<void, std::errc> read_socket();
     void parse_buffer();
     std::unique_ptr<http_request> get_request();
 
 private:
     friend class http_server;
 
+    std::expected<char, std::errc> read_byte();
+
     int m_fd;
     sockaddr_in m_peer_addr;
+    connection_state_e m_current_state;
+
+    std::array<char, message_buffer_capacity> m_recv_buffer;
+    size_t m_recv_size = 0;
+    size_t m_recv_idx = 0;
+
     std::array<char, message_buffer_capacity + 2> m_message_buffer;
     size_t m_message_buffer_size = 0;
+
     yyscan_t m_scanner_state = nullptr;
     YY_BUFFER_STATE m_buffer_state = nullptr;
     yypstate* m_parser_state = nullptr;
+
     std::unique_ptr<http_request> m_http_request = nullptr;
-    connection_state_e m_current_state;
 };
 }
 

@@ -1,5 +1,6 @@
 #include <cerrno>
 #include <cstring>
+#include <expected>
 #include <gtest/gtest.h>
 #include <memory>
 #include <netinet/in.h>
@@ -13,7 +14,7 @@
 
 namespace it = insanetree;
 
-class test_request_parsing : public testing::Test
+class TestRequestParsing : public testing::Test
 {
 public:
     void SetUp() override
@@ -45,24 +46,24 @@ public:
     std::unique_ptr<it::http_connection> m_http_connection;
 };
 
-TEST_F(test_request_parsing, test_basic_get)
+TEST_F(TestRequestParsing, TestBasicGet)
 {
     int ret;
+    std::expected<void, std::errc> result;
     m_http_connection->initialize();
     ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
               m_http_connection->get_state());
-    try {
-        m_http_connection->read_socket();
-        FAIL() << "Expected EAGAIN system error";
-    } catch (std::system_error& e) {
-        ASSERT_EQ(e.code(), std::errc::resource_unavailable_try_again);
-    }
+    result = m_http_connection->read_socket();
+    ASSERT_TRUE(!result);
+    ASSERT_EQ(std::errc::resource_unavailable_try_again, result.error());
     ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
               m_http_connection->get_state());
     ret = send(m_fd_in, basic_get_message, strlen(basic_get_message), 0);
     ASSERT_EQ(strlen(basic_get_message), ret);
-    m_http_connection->read_socket();
-    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE, m_http_connection->get_state());
+    result = m_http_connection->read_socket();
+    ASSERT_TRUE(result);
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE,
+              m_http_connection->get_state());
     m_http_connection->parse_buffer();
     ASSERT_EQ(it::http_connection::connection_state_e::REQUEST_READY,
               m_http_connection->get_state());
@@ -70,7 +71,41 @@ TEST_F(test_request_parsing, test_basic_get)
     std::unique_ptr<http_request> request = m_http_connection->get_request();
     ASSERT_TRUE(request);
     ASSERT_EQ(http_request::method_e::GET, request->get_method());
-    ASSERT_EQ(it::http_connection::connection_state_e::AWAITING_RESPONSE, m_http_connection->get_state());
+    ASSERT_EQ(it::http_connection::connection_state_e::AWAITING_RESPONSE,
+              m_http_connection->get_state());
+
+    const std::list<std::string>& path = request->get_path();
+    ASSERT_EQ(0ul, path.size());
+}
+
+TEST_F(TestRequestParsing, TestPartialRequest)
+{
+    int ret;
+    m_http_connection->initialize();
+    std::expected<void, std::errc> result;
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
+              m_http_connection->get_state());
+    ret = send(m_fd_in, basic_get_message, 1, 0);
+    ASSERT_EQ(1, ret);
+    result = m_http_connection->read_socket();
+    ASSERT_TRUE(result);
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
+              m_http_connection->get_state());
+    ret =
+      ::send(m_fd_in, basic_get_message + 1, strlen(basic_get_message) - 1, 0);
+    ASSERT_EQ(strlen(basic_get_message) - 1, ret);
+    result = m_http_connection->read_socket();
+    ASSERT_TRUE(result);
+    ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE,
+              m_http_connection->get_state());
+    m_http_connection->parse_buffer();
+    ASSERT_EQ(it::http_connection::connection_state_e::REQUEST_READY,
+              m_http_connection->get_state());
+    std::unique_ptr<http_request> request = m_http_connection->get_request();
+    ASSERT_TRUE(request);
+    ASSERT_EQ(http_request::method_e::GET, request->get_method());
+    ASSERT_EQ(it::http_connection::connection_state_e::AWAITING_RESPONSE,
+              m_http_connection->get_state());
 
     const std::list<std::string>& path = request->get_path();
     ASSERT_EQ(0ul, path.size());
