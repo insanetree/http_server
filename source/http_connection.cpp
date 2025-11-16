@@ -10,6 +10,7 @@
 #include <system_error>
 
 #include "http_lexer.hpp"
+#include "http_parser.hpp"
 #include "http_request.hpp"
 
 namespace insanetree {
@@ -39,18 +40,9 @@ http_connection::initialize()
         m_scanner_state = nullptr;
         m_buffer_state = nullptr;
     }
-    if (m_parser_state) {
-        free(m_parser_state);
-        m_parser_state = nullptr;
-    }
     ret = yylex_init(&m_scanner_state);
     if (ret) {
         throw std::system_error(std::make_error_code(std::errc(errno)));
-    }
-    m_parser_state = yypstate_new();
-    if (!m_parser_state) {
-        throw std::system_error(
-          std::make_error_code((std::errc::not_enough_memory)));
     }
     m_current_state = connection_state_e::READY_TO_READ;
 }
@@ -120,7 +112,7 @@ http_connection::read_socket()
     }
 }
 
-void
+std::expected<void, std::errc>
 http_connection::parse_buffer()
 {
     assert(m_current_state == connection_state_e::READY_TO_PARSE);
@@ -137,14 +129,17 @@ http_connection::parse_buffer()
           m_message_buffer.data(), m_message_buffer_size + 2, m_scanner_state);
     }
 
-    YYSTYPE yylval;
-
-    do {
-        ret = yylex(&yylval, m_scanner_state);
-        ret = yypush_parse(m_parser_state, ret, &yylval, m_http_request.get());
-    } while (ret != 0);
-
+    ret = yyparse(m_scanner_state, m_http_request.get());
+    if (ret == 1) {
+        m_current_state = connection_state_e::ERROR;
+        return std::unexpected{ std::errc::invalid_argument };
+    }
+    if (ret == 2) {
+        m_current_state = connection_state_e::ERROR;
+        return std::unexpected{ std::errc::not_enough_memory };
+    }
     m_current_state = connection_state_e::REQUEST_READY;
+    return {};
 }
 
 std::unique_ptr<http_request>

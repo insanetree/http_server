@@ -64,7 +64,8 @@ TEST_F(TestRequestParsing, TestBasicGet)
     ASSERT_TRUE(result);
     ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE,
               m_http_connection->get_state());
-    m_http_connection->parse_buffer();
+    result = m_http_connection->parse_buffer();
+    ASSERT_TRUE(result);
     ASSERT_EQ(it::http_connection::connection_state_e::REQUEST_READY,
               m_http_connection->get_state());
 
@@ -88,7 +89,7 @@ TEST_F(TestRequestParsing, TestPartialRequest)
     ret = send(m_fd_in, basic_get_message, 1, 0);
     ASSERT_EQ(1, ret);
     result = m_http_connection->read_socket();
-    ASSERT_TRUE(result);
+    ASSERT_TRUE(!result);
     ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_READ,
               m_http_connection->get_state());
     ret =
@@ -98,7 +99,8 @@ TEST_F(TestRequestParsing, TestPartialRequest)
     ASSERT_TRUE(result);
     ASSERT_EQ(it::http_connection::connection_state_e::READY_TO_PARSE,
               m_http_connection->get_state());
-    m_http_connection->parse_buffer();
+    result = m_http_connection->parse_buffer();
+    ASSERT_TRUE(result);
     ASSERT_EQ(it::http_connection::connection_state_e::REQUEST_READY,
               m_http_connection->get_state());
     std::unique_ptr<http_request> request = m_http_connection->get_request();

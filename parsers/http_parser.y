@@ -1,17 +1,19 @@
 %define parse.assert
-%define api.push-pull push
 %define api.pure full
+%define api.push-pull pull
 %define api.token.prefix {TOK_}
 %define api.symbol.prefix {SYM_}
 
 %code {
-#define yyerror(request, msg) ((void)0)
+#define yyerror(lexer_state, request, msg) ((void)0)
+int yylex(YYSTYPE *yylvalp, void *scanner); 
 }
 
 %code requires {
 #include "http_request.hpp"
 }
 
+%param{void* lexer_state}
 %parse-param{http_request* request}
 
 %union {

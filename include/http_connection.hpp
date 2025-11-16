@@ -37,7 +37,7 @@ public:
 
     void initialize();
     std::expected<void, std::errc> read_socket();
-    void parse_buffer();
+    std::expected<void, std::errc> parse_buffer();
     std::unique_ptr<http_request> get_request();
 
 private:
@@ -58,7 +58,6 @@ private:
 
     yyscan_t m_scanner_state = nullptr;
     YY_BUFFER_STATE m_buffer_state = nullptr;
-    yypstate* m_parser_state = nullptr;
 
     std::unique_ptr<http_request> m_http_request = nullptr;
 };
